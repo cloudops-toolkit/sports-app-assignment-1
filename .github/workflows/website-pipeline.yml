@@ -4,7 +4,7 @@ on:
   push:
     branches: [ main, develop ]
     paths:
-      - 'website/**'
+      - 'sports-platform/website/**'
       - '.github/workflows/website-pipeline.yml'
 
 permissions:
@@ -33,13 +33,13 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Install dependencies
-        run: cd website && npm install
+        run: cd sports-platform/website && npm install
 
       - name: Build
-        run: cd website && npm run build
+        run: cd sports-platform/website && npm run build
 
       - name: Deploy to S3
         run: |
-          aws s3 sync website/dist s3://$S3_BUCKET \
+          aws s3 sync sports-platform/website/dist s3://$S3_BUCKET \
             --delete \
             --cache-control "max-age=86400"
