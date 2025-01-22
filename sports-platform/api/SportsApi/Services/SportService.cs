@@ -8,7 +8,8 @@ public class SportService : ISportService
     {
         new Sport { Id = 1, Name = "Football", Description = "Most popular sport in America" },
         new Sport { Id = 2, Name = "Basketball", Description = "Fast-paced indoor sport" },
-        new Sport { Id = 3, Name = "Baseball", Description = "America's pastime" }
+        new Sport { Id = 3, Name = "Baseball", Description = "America's pastime" },
+        new Sport { Id = 4, Name = "Tennis", Description = "Global racquet sport" }
     };
 
     public async Task<IEnumerable<Sport>> GetAllSports() => 

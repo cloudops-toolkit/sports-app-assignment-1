@@ -1,0 +1,32 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sports-platform", "sports-platform", "{14C3B378-3468-0FBC-BBF6-FE6BC225A815}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "api", "api", "{CF67CDEB-C896-CA6A-AE15-41805C7E9BA6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SportsApi", "sports-platform\api\SportsApi\SportsApi.csproj", "{B75E62BF-E4B3-AC3D-192C-B57C2FDFE571}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B75E62BF-E4B3-AC3D-192C-B57C2FDFE571}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B75E62BF-E4B3-AC3D-192C-B57C2FDFE571}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B75E62BF-E4B3-AC3D-192C-B57C2FDFE571}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B75E62BF-E4B3-AC3D-192C-B57C2FDFE571}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{CF67CDEB-C896-CA6A-AE15-41805C7E9BA6} = {14C3B378-3468-0FBC-BBF6-FE6BC225A815}
+		{B75E62BF-E4B3-AC3D-192C-B57C2FDFE571} = {CF67CDEB-C896-CA6A-AE15-41805C7E9BA6}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1C82C750-0DA5-4E6F-900C-1F637A3DBC32}
+	EndGlobalSection
+EndGlobal
