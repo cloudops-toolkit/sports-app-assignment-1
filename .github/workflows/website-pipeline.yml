@@ -36,10 +36,13 @@ jobs:
         run: cd sports-platform/website && npm install
 
       - name: Build
-        run: cd sports-platform/website && npm run build
+        run: |
+          cd sports-platform/website && npm run build
+          ls -la
 
       - name: Deploy to S3
         run: |
+          ls -la
           aws s3 sync sports-platform/website/dist s3://$S3_BUCKET \
             --delete \
             --cache-control "max-age=86400"
