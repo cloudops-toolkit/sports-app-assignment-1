@@ -79,33 +79,68 @@ jobs:
             ${{ steps.task-def.outputs.task-definition }} > cleaned-task-definition.json
       
       - name: Deploy to ECS
-        id: deploy
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
           task-definition: cleaned-task-definition.json
           service: ${{ env.ECS_SERVICE }}
           cluster: ${{ env.ECS_CLUSTER }}
           wait-for-service-stability: true
-          force-new-deployment: true
-          deployment-controller: ${{ env.DEPLOYMENT_CONTROLLER }}
-          codedeploy-appspec: |
-            version: 0.0
-            Resources:
-              - TargetService:
-                  Type: AWS::ECS::Service
-                  Properties:
-                    TaskDefinition: "${{ env.ECS_SERVICE }}"
-                    LoadBalancerInfo:
-                      ContainerName: "${{ env.TASK_DEFINITION }}"
-                      ContainerPort: 8080
 
+      - name: Monitor Deployment
+        if: steps.deploy.outcome == 'success'
+        run: |
+          PREV_TASK_DEF=$(aws ecs describe-service \
+            --cluster $ECS_CLUSTER \
+            --service $ECS_SERVICE \
+            --query 'services[0].taskDefinition' \
+            --output text)
+          
+          STATUS=$(aws ecs wait services-stable \
+            --cluster $ECS_CLUSTER \
+            --services $ECS_SERVICE)
+          
+          if [ $? -ne 0 ]; then
+            echo "Deployment failed, rolling back..."
+            aws ecs update-service \
+              --cluster $ECS_CLUSTER \
+              --service $ECS_SERVICE \
+              --task-definition $PREV_TASK_DEF \
+              --force-new-deployment
+            exit 1
+          fi
+      
+      - name: Notify Deployment Status
+        if: always()
+        run: |
+          if [ ${{ job.status }} == 'success' ]; then
+            aws sns publish \
+              --topic-arn arn:aws:sns:us-east-1:418272773173:sports-platform-alerts \
+              --message "Deployment successful for ${{ github.ref }}"
+          else
+            aws sns publish \
+              --topic-arn arn:aws:sns:us-east-1:418272773173:sports-platform-alerts \
+              --message "Deployment failed for ${{ github.ref }}"
+          fi
       # - name: Deploy to ECS
+      #   id: deploy
       #   uses: aws-actions/amazon-ecs-deploy-task-definition@v1
       #   with:
       #     task-definition: cleaned-task-definition.json
       #     service: ${{ env.ECS_SERVICE }}
       #     cluster: ${{ env.ECS_CLUSTER }}
       #     wait-for-service-stability: true
+      #     force-new-deployment: true
+      #     deployment-controller: ${{ env.DEPLOYMENT_CONTROLLER }}
+      #     codedeploy-appspec: |
+      #       version: 0.0
+      #       Resources:
+      #         - TargetService:
+      #             Type: AWS::ECS::Service
+      #             Properties:
+      #               TaskDefinition: "${{ env.ECS_SERVICE }}"
+      #               LoadBalancerInfo:
+      #                 ContainerName: "${{ env.TASK_DEFINITION }}"
+      #                 ContainerPort: 8080
 
       # - name: Build and push image to ECR
       #   env:
