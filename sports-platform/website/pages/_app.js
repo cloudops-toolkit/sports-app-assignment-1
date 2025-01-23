@@ -10,3 +10,6 @@ export default function App({ Component, pageProps }) {
     </QueryClientProvider>
   )
 }
+
+const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+axios.defaults.baseURL = apiUrl;

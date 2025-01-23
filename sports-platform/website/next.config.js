@@ -1,10 +1,10 @@
 module.exports = {
-    async rewrites() {
-      return [
-        {
-          source: '/api/:path*',
-          destination: 'http://localhost:5268/api/:path*'
-        }
-      ]
-    }
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: `${process.env.NEXT_PUBLIC_API_URL}/:path*`
+      }
+    ]
   }
+}
