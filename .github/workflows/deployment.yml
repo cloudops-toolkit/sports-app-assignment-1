@@ -31,6 +31,10 @@ on:
         required: true
       ECR_REPOSITORY_URI:
         required: true
+      S3_BUCKET:
+        required: true
+      API_URL:
+        required: true
 
 permissions:
   id-token: write
@@ -71,13 +75,13 @@ jobs:
         if: inputs.deploy-type == 'website'
         run: |
           cd sports-platform/website
-          echo "NEXT_PUBLIC_API_URL=${{ inputs.api-url }}" > .env.production
+          echo "NEXT_PUBLIC_API_URL=$API_URL" > .env.production
           npm run build
 
       - name: Deploy to S3
         if: inputs.deploy-type == 'website'
         run: |
-          aws s3 sync sports-platform/website/out s3://${{ inputs.s3-bucket }} \
+          aws s3 sync sports-platform/website/out s3://$S3_BUCKET \
             --delete \
             --cache-control "max-age=86400"
 
