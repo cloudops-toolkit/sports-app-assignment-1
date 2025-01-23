@@ -21,12 +21,12 @@ jobs:
     with:
       environment: staging
       deploy-type: website
-      s3-bucket: ${{ secrets.S3_BUCKET_STAGING }}
-      api-url: ${{ secrets.API_URL_STAGING }}
     secrets:
       AWS_REGION: ${{ secrets.AWS_REGION }}
       AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
       ECR_REPOSITORY_URI: ${{ secrets.ECR_REPOSITORY_URI }}
+      S3_BUCKET: ${{ secrets.S3_BUCKET_STAGING }}
+      API_URL: ${{ secrets.API_URL_STAGING }}
 
   deploy-production:
     needs: deploy-staging
@@ -35,9 +35,9 @@ jobs:
     with:
       environment: production
       deploy-type: website
-      s3-bucket: ${{ secrets.S3_BUCKET_PRODUCTION }}
-      api-url: ${{ secrets.API_URL_PRODUCTION }}
     secrets:
       AWS_REGION: ${{ secrets.AWS_REGION }}
       AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
       ECR_REPOSITORY_URI: ${{ secrets.ECR_REPOSITORY_URI }}
+      S3_BUCKET: ${{ secrets.S3_BUCKET_PRODUCTION }}
+      API_URL: ${{ secrets.API_URL_PRODUCTION }}

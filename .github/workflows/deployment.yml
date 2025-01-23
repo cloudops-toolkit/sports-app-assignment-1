@@ -43,6 +43,8 @@ jobs:
     env:
       AWS_REGION: ${{ secrets.AWS_REGION }}
       ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY_URI }}
+      S3_BUCKET: ${{ secrets.S3_BUCKET }}
+      API_URL: ${{ secrets.API_URL }}
     steps:
       - uses: actions/checkout@v3
 
