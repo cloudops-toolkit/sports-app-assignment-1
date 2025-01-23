@@ -1,4 +1,4 @@
-name: API CI/CD Pipeline
+name: API Backend CI/CD Pipeline
 
 on:
   push:
