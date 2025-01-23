@@ -6,6 +6,7 @@ on:
     paths:
       - 'sports-platform/website/**'
       - '.github/workflows/website-pipeline.yml'
+      - 'README.md'
 
 permissions:
   id-token: write
