@@ -41,7 +41,7 @@ jobs:
       deploy-type: api
       service-name: sports-api-staging
       cluster-name: sports-platform-staging
-      task-definition: sports-platform-api-staging
+      task-definition: sports-platform-api
     secrets:
       AWS_REGION: ${{ secrets.AWS_REGION }}
       AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
@@ -56,7 +56,7 @@ jobs:
       deploy-type: api
       service-name: sports-api-production
       cluster-name: sports-platform-production
-      task-definition: sports-platform-api-production
+      task-definition: sports-platform-api
     secrets:
       AWS_REGION: ${{ secrets.AWS_REGION }}
       AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
