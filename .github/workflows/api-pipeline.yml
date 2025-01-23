@@ -3,8 +3,8 @@ name: API CI/CD Pipeline
 on:
   push:
     branches: 
-      - develop   # staging
-      - main     # production
+      - develop 
+      - main
     paths:
       - 'sports-platform/api/**'
       - '.github/workflows/api-pipeline.yml'
@@ -38,7 +38,6 @@ jobs:
     uses: ./.github/workflows/deploy-api.yml
     with:
       environment: staging
-      # deploy-type: api
       service-name: sports-api
       cluster-name: sports-platform-staging
       task-definition: sports-platform-api
@@ -53,7 +52,6 @@ jobs:
     uses: ./.github/workflows/deploy-api.yml
     with:
       environment: production
-      # deploy-type: api
       service-name: sports-api
       cluster-name: sports-platform-production
       task-definition: sports-platform-api
