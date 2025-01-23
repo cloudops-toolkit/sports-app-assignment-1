@@ -18,6 +18,8 @@ env:
   ECS_CLUSTER: sports-platform-staging
   TASK_DEFINITION: sports-platform-api
   API_PATH: sports-platform/api/SportsApi
+  DEPLOYMENT_CONTROLLER: BLUE_GREEN
+  DEPLOYMENT_TIMEOUT: 15
 
 jobs:
   test:
@@ -75,14 +77,35 @@ jobs:
         run: |
           jq 'del(.taskDefinitionArn, .status, .revision, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy, .enableFaultInjection)' \
             ${{ steps.task-def.outputs.task-definition }} > cleaned-task-definition.json
-
+      
       - name: Deploy to ECS
+        id: deploy
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
           task-definition: cleaned-task-definition.json
           service: ${{ env.ECS_SERVICE }}
           cluster: ${{ env.ECS_CLUSTER }}
           wait-for-service-stability: true
+          force-new-deployment: true
+          deployment-controller: ${{ env.DEPLOYMENT_CONTROLLER }}
+          codedeploy-appspec: |
+            version: 0.0
+            Resources:
+              - TargetService:
+                  Type: AWS::ECS::Service
+                  Properties:
+                    TaskDefinition: <TASK_DEFINITION>
+                    LoadBalancerInfo:
+                      ContainerName: "${{ env.ECS_SERVICE }}"
+                      ContainerPort: 8080
+
+      # - name: Deploy to ECS
+      #   uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      #   with:
+      #     task-definition: cleaned-task-definition.json
+      #     service: ${{ env.ECS_SERVICE }}
+      #     cluster: ${{ env.ECS_CLUSTER }}
+      #     wait-for-service-stability: true
 
       # - name: Build and push image to ECR
       #   env:
