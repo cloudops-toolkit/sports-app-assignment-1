@@ -1,0 +1,67 @@
+name: Website Deployment Workflow
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+      s3-bucket:
+        required: false
+        type: string
+      api-url:
+        required: false
+        type: string
+    secrets:
+      AWS_REGION:
+        required: true
+      AWS_ROLE_ARN:
+        required: true
+      S3_BUCKET:
+        required: true
+      API_URL:
+        required: true
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    env:
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      S3_BUCKET: ${{ secrets.S3_BUCKET }}
+      API_URL: ${{ secrets.API_URL }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Configure AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      # Website Deployment Steps
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Dependencies
+        run: |
+          cd sports-platform/website
+          npm ci
+
+      - name: Build Website
+        run: |
+          cd sports-platform/website
+          echo "NEXT_PUBLIC_API_URL=$API_URL" > .env.production
+          npm run build
+
+      - name: Deploy to S3
+        run: |
+          aws s3 sync sports-platform/website/out s3://$S3_BUCKET \
+            --delete \
+            --cache-control "max-age=86400"

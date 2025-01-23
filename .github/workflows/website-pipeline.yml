@@ -17,10 +17,10 @@ permissions:
 jobs:
   deploy-staging:
     if: github.ref == 'refs/heads/develop'
-    uses: ./.github/workflows/deployment.yml
+    uses: ./.github/workflows/deploy-website.yml
     with:
       environment: staging
-      deploy-type: website
+      # deploy-type: website
     secrets:
       AWS_REGION: ${{ secrets.AWS_REGION }}
       AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
@@ -31,10 +31,10 @@ jobs:
   deploy-production:
     needs: deploy-staging
     if: github.ref == 'refs/heads/main'
-    uses: ./.github/workflows/deployment.yml
+    uses: ./.github/workflows/deploy-website.yml
     with:
       environment: production
-      deploy-type: website
+      # deploy-type: website
     secrets:
       AWS_REGION: ${{ secrets.AWS_REGION }}
       AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}

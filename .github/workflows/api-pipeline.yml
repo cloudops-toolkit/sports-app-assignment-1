@@ -35,7 +35,7 @@ jobs:
   deploy-staging:
     needs: test
     if: github.ref == 'refs/heads/develop'
-    uses: ./.github/workflows/deployment.yml
+    uses: ./.github/workflows/deploy-api.yml
     with:
       environment: staging
       deploy-type: api
@@ -50,7 +50,7 @@ jobs:
   deploy-production:
     needs: deploy-staging
     if: github.ref == 'refs/heads/main'
-    uses: ./.github/workflows/deployment.yml
+    uses: ./.github/workflows/deploy-api.yml
     with:
       environment: production
       deploy-type: api
