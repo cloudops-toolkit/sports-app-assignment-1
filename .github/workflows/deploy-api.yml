@@ -84,3 +84,40 @@ jobs:
           service: ${{ inputs.service-name }}
           cluster: ${{ inputs.cluster-name }}
           wait-for-service-stability: true
+      
+      - name: Monitor Deployment
+        if: steps.deploy.outcome == 'success'
+        run: |
+          PREV_TASK_DEF=$(aws ecs describe-service \
+            --cluster ${{ inputs.cluster-name }} \
+            --service ${{ inputs.service-name }} \
+            --query 'services[0].taskDefinition' \
+            --output text)
+          
+          STATUS=$(aws ecs wait services-stable \
+            --cluster ${{ inputs.cluster-name }} \
+            --services ${{ inputs.service-name }})
+          
+          if [ $? -ne 0 ]; then
+            echo "Deployment failed, rolling back..."
+            aws ecs update-service \
+              --cluster ${{ inputs.cluster-name }} \
+              --service ${{ inputs.service-name }} \
+              --task-definition $PREV_TASK_DEF \
+              --force-new-deployment
+            exit 1
+          fi
+      
+      - name: Notify Deployment Status
+        if: always()
+        run: |
+          if [ ${{ job.status }} == 'success' ]; then
+            aws sns publish \
+              --topic-arn arn:aws:sns:us-east-1:418272773173:sports-platform-alerts \
+              --message "Deployment successful for ${{ github.ref }}"
+          else
+            aws sns publish \
+              --topic-arn arn:aws:sns:us-east-1:418272773173:sports-platform-alerts \
+              --message "Deployment failed for ${{ github.ref }}"
+          fi
+      
