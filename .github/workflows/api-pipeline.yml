@@ -1,26 +1,18 @@
-name: API Backend CI/CD Pipeline
+name: API CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: 
+      - develop   # staging
+      - main     # production
     paths:
       - 'sports-platform/api/**'
       - '.github/workflows/api-pipeline.yml'
-      - 'README.md'
-
-permissions:
-  id-token: write
-  contents: read
 
 env:
   AWS_REGION: ${{ secrets.AWS_REGION }}
   ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY_URI }}
-  ECS_SERVICE: sports-api
-  ECS_CLUSTER: sports-platform-staging
-  TASK_DEFINITION: sports-platform-api
   API_PATH: sports-platform/api/SportsApi
-  DEPLOYMENT_CONTROLLER: BLUE_GREEN
-  DEPLOYMENT_TIMEOUT: 15
 
 jobs:
   test:
@@ -34,148 +26,25 @@ jobs:
         run: |
           cd $API_PATH
           dotnet test --collect:"XPlat Code Coverage"
-          
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ${{ env.AWS_REGION }}
+  deploy-staging:
+    needs: test
+    if: github.ref == 'refs/heads/develop'
+    uses: ./.github/workflows/deployment.yml
+    with:
+      environment: staging
+      deploy-type: api
+      service-name: sports-api-staging
+      cluster-name: sports-platform-staging
+      task-definition: sports-platform-api-staging
 
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
-
-      - name: Build and push image to ECR
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ github.sha }}
-        run: |
-          cd $API_PATH
-          docker build -t $ECR_REPOSITORY:$IMAGE_TAG .
-          docker tag $ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-
-      - name: Download task definition
-        run: |
-          aws ecs describe-task-definition \
-            --task-definition $TASK_DEFINITION \
-            --query 'taskDefinition' > task-definition.json
-
-      - name: Update task definition
-        id: task-def
-        uses: aws-actions/amazon-ecs-render-task-definition@v1
-        with:
-          task-definition: task-definition.json
-          container-name: ${{ env.ECS_SERVICE }}
-          image: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
-
-      - name: Clean task definition
-        run: |
-          jq 'del(.taskDefinitionArn, .status, .revision, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy, .enableFaultInjection)' \
-            ${{ steps.task-def.outputs.task-definition }} > cleaned-task-definition.json
-      
-      - name: Deploy to ECS
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-        with:
-          task-definition: cleaned-task-definition.json
-          service: ${{ env.ECS_SERVICE }}
-          cluster: ${{ env.ECS_CLUSTER }}
-          wait-for-service-stability: true
-
-      - name: Monitor Deployment
-        if: steps.deploy.outcome == 'success'
-        run: |
-          PREV_TASK_DEF=$(aws ecs describe-service \
-            --cluster $ECS_CLUSTER \
-            --service $ECS_SERVICE \
-            --query 'services[0].taskDefinition' \
-            --output text)
-          
-          STATUS=$(aws ecs wait services-stable \
-            --cluster $ECS_CLUSTER \
-            --services $ECS_SERVICE)
-          
-          if [ $? -ne 0 ]; then
-            echo "Deployment failed, rolling back..."
-            aws ecs update-service \
-              --cluster $ECS_CLUSTER \
-              --service $ECS_SERVICE \
-              --task-definition $PREV_TASK_DEF \
-              --force-new-deployment
-            exit 1
-          fi
-      
-      - name: Notify Deployment Status
-        if: always()
-        run: |
-          if [ ${{ job.status }} == 'success' ]; then
-            aws sns publish \
-              --topic-arn arn:aws:sns:us-east-1:418272773173:sports-platform-alerts \
-              --message "Deployment successful for ${{ github.ref }}"
-          else
-            aws sns publish \
-              --topic-arn arn:aws:sns:us-east-1:418272773173:sports-platform-alerts \
-              --message "Deployment failed for ${{ github.ref }}"
-          fi
-      # - name: Deploy to ECS
-      #   id: deploy
-      #   uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-      #   with:
-      #     task-definition: cleaned-task-definition.json
-      #     service: ${{ env.ECS_SERVICE }}
-      #     cluster: ${{ env.ECS_CLUSTER }}
-      #     wait-for-service-stability: true
-      #     force-new-deployment: true
-      #     deployment-controller: ${{ env.DEPLOYMENT_CONTROLLER }}
-      #     codedeploy-appspec: |
-      #       version: 0.0
-      #       Resources:
-      #         - TargetService:
-      #             Type: AWS::ECS::Service
-      #             Properties:
-      #               TaskDefinition: "${{ env.ECS_SERVICE }}"
-      #               LoadBalancerInfo:
-      #                 ContainerName: "${{ env.TASK_DEFINITION }}"
-      #                 ContainerPort: 8080
-
-      # - name: Build and push image to ECR
-      #   env:
-      #     ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-      #     IMAGE_TAG: ${{ github.sha }}
-      #   run: |
-      #     cd sports-platform/api/SportsApi
-      #     docker build -t $ECR_REPOSITORY:$IMAGE_TAG .
-      #     docker tag $ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-      #     docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-
-      # - name: Update ECS task definition
-      #   run: |
-      #     aws ecs describe-task-definition \
-      #       --task-definition $ECS_SERVICE \
-      #       --query 'taskDefinition' > task-definition.json
-
-      #     # Update image in task definition
-      #     sed -i "s|$ECR_REPOSITORY:latest|$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG|g" task-definition.json
-
-      #     aws ecs register-task-definition \
-      #       --cli-input-json file://task-definition.json
-
-      # # - name: Build and push image to ECR
-      # #   env:
-      # #     ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-      # #     IMAGE_TAG: ${{ github.sha }}
-      # #   run: |
-      # #     docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./sports-platform/api/SportsApi
-      # #     docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-
-      # - name: Update ECS service
-      #   run: |
-      #     aws ecs update-service \
-      #       --cluster $ECS_CLUSTER \
-      #       --service $ECS_SERVICE \
-      #       --force-new-deployment
+  deploy-production:
+    needs: deploy-staging
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/deployment.yml
+    with:
+      environment: production
+      deploy-type: api
+      service-name: sports-api-production
+      cluster-name: sports-platform-production
+      task-definition: sports-platform-api-production

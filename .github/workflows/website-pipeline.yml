@@ -2,48 +2,27 @@ name: Website CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
     paths:
       - 'sports-platform/website/**'
       - '.github/workflows/website-pipeline.yml'
-      - 'README.md'
-
-permissions:
-  id-token: write
-  contents: read
-
-env:
-  AWS_REGION: ${{ secrets.AWS_REGION }}
-  S3_BUCKET: ${{ secrets.S3_BUCKET_STAGING }}
 
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
+  deploy-staging:
+    if: github.ref == 'refs/heads/develop'
+    uses: ./.github/workflows/deployment.yml
+    with:
+      environment: staging
+      deploy-type: website
+      s3-bucket: ${{ secrets.S3_BUCKET_STAGING }}
+      api-url: ${{ secrets.API_URL_STAGING }}
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Install dependencies
-        run: cd sports-platform/website && npm install
-
-      - name: Build
-        run: |
-          cd sports-platform/website && npm run build
-          ls -la
-
-      - name: Deploy to S3
-        run: |
-          ls -la
-          aws s3 sync sports-platform/website/out s3://$S3_BUCKET \
-            --delete \
-            --cache-control "max-age=86400"
+  deploy-production:
+    needs: deploy-staging
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/deployment.yml
+    with:
+      environment: production
+      deploy-type: website
+      s3-bucket: ${{ secrets.S3_BUCKET_PRODUCTION }}
+      api-url: ${{ secrets.API_URL_PRODUCTION }}
