@@ -8,7 +8,7 @@ on:
     paths:
       - 'sports-platform/api/**'
       - '.github/workflows/api-pipeline.yml'
-      - '.github/workflows/deployment.yml'
+      - '.github/workflows/deploy-api.yml'
 
 permissions:
   id-token: write
