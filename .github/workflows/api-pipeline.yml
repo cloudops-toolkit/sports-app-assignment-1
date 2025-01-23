@@ -27,7 +27,7 @@ jobs:
           dotnet-version: '9.0.x'
       - name: Run Tests
         run: |
-          cd api/SportsApi
+          cd sports-platform/api/SportsApi
           dotnet test --collect:"XPlat Code Coverage"
           
   deploy:
@@ -48,12 +48,24 @@ jobs:
       - name: Build and push image to ECR
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: latest
+          IMAGE_TAG: ${{ github.sha }}
         run: |
           cd sports-platform/api/SportsApi
           docker build -t $ECR_REPOSITORY:$IMAGE_TAG .
           docker tag $ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+      - name: Update ECS task definition
+        run: |
+          aws ecs describe-task-definition \
+            --task-definition $ECS_SERVICE \
+            --query 'taskDefinition' > task-definition.json
+
+          # Update image in task definition
+          sed -i "s|$ECR_REPOSITORY:latest|$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG|g" task-definition.json
+
+          aws ecs register-task-definition \
+            --cli-input-json file://task-definition.json
 
       # - name: Build and push image to ECR
       #   env:
