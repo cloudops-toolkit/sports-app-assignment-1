@@ -32,6 +32,10 @@ on:
       ECR_REPOSITORY_URI:
         required: true
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   deploy:
     runs-on: ubuntu-latest

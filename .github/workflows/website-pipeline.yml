@@ -2,10 +2,13 @@ name: Website CI/CD Pipeline
 
 on:
   push:
-    branches: [main, develop]
+    branches:
+      - develop
+      - main
     paths:
       - 'sports-platform/website/**'
       - '.github/workflows/website-pipeline.yml'
+      - '.github/workflows/deployment.yml'
 
 jobs:
   deploy-staging:
