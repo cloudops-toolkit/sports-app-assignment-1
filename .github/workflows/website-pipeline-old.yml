@@ -2,7 +2,7 @@ name: Website CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ feature ]
     paths:
       - 'sports-platform/website/**'
       - '.github/workflows/website-pipeline.yml'

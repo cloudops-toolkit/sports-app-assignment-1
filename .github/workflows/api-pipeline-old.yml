@@ -1,12 +1,12 @@
 name: API Backend CI/CD Pipeline
 
-# on:
-#   # push:
-#   #   branches: [ main, develop ]
-#   #   paths:
-#   #     - 'sports-platform/api/**'
-#   #     - '.github/workflows/api-pipeline.yml'
-#   #     - 'README.md'
+on:
+  push:
+    branches: [ feature ]
+    paths:
+      - 'sports-platform/api/**'
+      - '.github/workflows/api-pipeline.yml'
+      - 'README.md'
 
 permissions:
   id-token: write
