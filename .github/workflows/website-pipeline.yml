@@ -10,6 +10,10 @@ on:
       - '.github/workflows/website-pipeline.yml'
       - '.github/workflows/deployment.yml'
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   deploy-staging:
     if: github.ref == 'refs/heads/develop'

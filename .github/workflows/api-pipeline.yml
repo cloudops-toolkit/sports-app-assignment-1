@@ -10,6 +10,10 @@ on:
       - '.github/workflows/api-pipeline.yml'
       - '.github/workflows/deployment.yml'
 
+permissions:
+  id-token: write
+  contents: read
+
 env:
   AWS_REGION: ${{ secrets.AWS_REGION }}
   ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY_URI }}
