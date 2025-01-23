@@ -39,7 +39,7 @@ jobs:
     with:
       environment: staging
       deploy-type: api
-      service-name: sports-api-staging
+      service-name: sports-api
       cluster-name: sports-platform-staging
       task-definition: sports-platform-api
     secrets:
@@ -54,7 +54,7 @@ jobs:
     with:
       environment: production
       deploy-type: api
-      service-name: sports-api-production
+      service-name: sports-api
       cluster-name: sports-platform-production
       task-definition: sports-platform-api
     secrets:
