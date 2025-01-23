@@ -2,6 +2,7 @@ using SportsApi.Services;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
+var allowedOrigins = builder.Configuration.GetValue<string>("AllowedOrigins")?.Split(",") ?? new[] { "*" };
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -10,12 +11,23 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Sports API", Version = "v1" });
 });
 builder.Services.AddScoped<ISportService, SportService>();
+// builder.Services.AddCors(options =>
+// {
+//     options.AddPolicy("AllowAll", builder =>
+//         builder.AllowAnyOrigin()
+//                .AllowAnyMethod()
+//                .AllowAnyHeader());
+// });
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", builder =>
-        builder.AllowAnyOrigin()
+    {
+        builder.WithOrigins(allowedOrigins)
                .AllowAnyMethod()
-               .AllowAnyHeader());
+               .AllowAnyHeader()
+               .AllowCredentials();
+    });
 });
 
 var app = builder.Build();
