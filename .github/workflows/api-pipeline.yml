@@ -55,29 +55,61 @@ jobs:
           docker tag $ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-      - name: Update ECS task definition
+      - name: Download task definition
         run: |
           aws ecs describe-task-definition \
-            --task-definition $ECS_SERVICE \
+            --task-definition $ECS_SERVICE:ACTIVE \
             --query 'taskDefinition' > task-definition.json
 
-          # Update image in task definition
-          sed -i "s|$ECR_REPOSITORY:latest|$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG|g" task-definition.json
+      - name: Update task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: ${{ env.ECS_SERVICE }}
+          image: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
 
-          aws ecs register-task-definition \
-            --cli-input-json file://task-definition.json
+      - name: Deploy to ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: ${{ env.ECS_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
 
       # - name: Build and push image to ECR
       #   env:
       #     ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
       #     IMAGE_TAG: ${{ github.sha }}
       #   run: |
-      #     docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./sports-platform/api/SportsApi
+      #     cd sports-platform/api/SportsApi
+      #     docker build -t $ECR_REPOSITORY:$IMAGE_TAG .
+      #     docker tag $ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
       #     docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-      - name: Update ECS service
-        run: |
-          aws ecs update-service \
-            --cluster $ECS_CLUSTER \
-            --service $ECS_SERVICE \
-            --force-new-deployment
+      # - name: Update ECS task definition
+      #   run: |
+      #     aws ecs describe-task-definition \
+      #       --task-definition $ECS_SERVICE \
+      #       --query 'taskDefinition' > task-definition.json
+
+      #     # Update image in task definition
+      #     sed -i "s|$ECR_REPOSITORY:latest|$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG|g" task-definition.json
+
+      #     aws ecs register-task-definition \
+      #       --cli-input-json file://task-definition.json
+
+      # # - name: Build and push image to ECR
+      # #   env:
+      # #     ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+      # #     IMAGE_TAG: ${{ github.sha }}
+      # #   run: |
+      # #     docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./sports-platform/api/SportsApi
+      # #     docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+      # - name: Update ECS service
+      #   run: |
+      #     aws ecs update-service \
+      #       --cluster $ECS_CLUSTER \
+      #       --service $ECS_SERVICE \
+      #       --force-new-deployment
