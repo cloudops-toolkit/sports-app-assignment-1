@@ -94,9 +94,9 @@ jobs:
               - TargetService:
                   Type: AWS::ECS::Service
                   Properties:
-                    TaskDefinition: <TASK_DEFINITION>
+                    TaskDefinition: "${{ env.ECS_SERVICE }}"
                     LoadBalancerInfo:
-                      ContainerName: "${{ env.ECS_SERVICE }}"
+                      ContainerName: "${{ env.TASK_DEFINITION }}"
                       ContainerPort: 8080
 
       # - name: Deploy to ECS
