@@ -38,7 +38,7 @@ jobs:
     uses: ./.github/workflows/deploy-api.yml
     with:
       environment: staging
-      deploy-type: api
+      # deploy-type: api
       service-name: sports-api
       cluster-name: sports-platform-staging
       task-definition: sports-platform-api
@@ -53,7 +53,7 @@ jobs:
     uses: ./.github/workflows/deploy-api.yml
     with:
       environment: production
-      deploy-type: api
+      # deploy-type: api
       service-name: sports-api
       cluster-name: sports-platform-production
       task-definition: sports-platform-api
