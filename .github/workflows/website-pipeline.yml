@@ -16,7 +16,6 @@ permissions:
 
 env:
   AWS_REGION: ${{ secrets.AWS_REGION }}
-  S3_BUCKET: ${{ secrets.S3_BUCKET_STAGING }}
 
 jobs:
   deploy-staging:
@@ -25,8 +24,9 @@ jobs:
     with:
       environment: staging
       deploy-type: website
-      s3-bucket: ${{ secrets.S3_BUCKET_STAGING }}
-      api-url: ${{ secrets.API_URL_STAGING }}
+    secrets:
+      S3_BUCKET: ${{ secrets.S3_BUCKET_STAGING }}
+      API_URL: ${{ secrets.API_URL_STAGING }}
 
   deploy-production:
     needs: deploy-staging
@@ -35,5 +35,6 @@ jobs:
     with:
       environment: production
       deploy-type: website
-      s3-bucket: ${{ secrets.S3_BUCKET_PRODUCTION }}
-      api-url: ${{ secrets.API_URL_PRODUCTION }}
+    secrets:
+      S3_BUCKET: ${{ secrets.S3_BUCKET_PRODUCTION }}
+      API_URL: ${{ secrets.API_URL_PRODUCTION }}
