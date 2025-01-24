@@ -35,7 +35,6 @@ This project implements a CI/CD pipeline for a sports platform consisting of a .
 ### CI/CD Pipeline Features
 - Automated testing
 - Docker image building and pushing
-- Blue-Green deployment
 - Automatic rollback on failure
 - Health monitoring
 - Alert triggers
@@ -73,15 +72,13 @@ This project implements a CI/CD pipeline for a sports platform consisting of a .
 3. Builds Docker image.
 4. Pushes to ECR.
 5. Updates ECS task definition.
-6. Performs blue-green deployment.
-7. Monitors health checks.
-8. Rolls back if needed.
+6. Monitors health checks.
+7. Rolls back if needed.
 
 ### Website Deployment
 1. Code push triggers GitHub Actions.
 2. Builds static files.
 3. Deploys to S3.
-4. Invalidates CloudFront cache (if configured).
 
 ## Monitoring & Alerts
 
@@ -89,7 +86,6 @@ This project implements a CI/CD pipeline for a sports platform consisting of a .
 - API endpoint monitoring
 - ECS task health
 - Load balancer target group health
-- Container insights
 
 ### Alert Configurations
 - Deployment success/failure notifications
@@ -106,7 +102,6 @@ This project implements a CI/CD pipeline for a sports platform consisting of a .
 - IAM role-based access
 - Security groups configuration
 - CORS policies
-- S3 bucket policies
 
 ## Scalability
 - ECS service auto-scaling
